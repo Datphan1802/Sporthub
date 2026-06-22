@@ -1,6 +1,6 @@
 # sporthub
 
-A new Flutter project.
+DATABASE: https://console.firebase.google.com/project/sporthub-d9a6b/firestore
 
 ## Getting Started
 
