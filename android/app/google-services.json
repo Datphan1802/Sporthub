@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "907249950037",
+    "project_id": "sporthub-d9a6b",
+    "storage_bucket": "sporthub-d9a6b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907249950037:android:e66eeb6bc9c4a4fc3763dc",
+        "android_client_info": {
+          "package_name": "com.sporthub.prm393.sporthub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "907249950037-kmd3esko72sdtj59k0vqfsaursu65hcs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY3tF-fEPn5MSEeBA3HAHUcuW-ynCRjXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "907249950037-kmd3esko72sdtj59k0vqfsaursu65hcs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
