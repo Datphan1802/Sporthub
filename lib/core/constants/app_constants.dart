@@ -6,7 +6,7 @@ class AppConstants {
 
   // Application Info
   static const String appName = 'SportHub';
-  static const String appTagline = 'Book Your Favorite Courts';
+  static const String appTagline = 'Đặt sân thể thao yêu thích';
 
   // Firestore Collection Names
   static const String usersCollection = 'users';

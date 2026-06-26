@@ -36,44 +36,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Full name is required';
+      return 'Vui lòng nhập họ tên';
     }
     if (value.trim().length < AppConstants.minNameLength) {
-      return 'Name must be at least ${AppConstants.minNameLength} characters';
+      return 'Họ tên phải có ít nhất ${AppConstants.minNameLength} ký tự';
     }
     if (value.trim().length > AppConstants.maxNameLength) {
-      return 'Name must not exceed ${AppConstants.maxNameLength} characters';
+      return 'Họ tên không được vượt quá ${AppConstants.maxNameLength} ký tự';
     }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return 'Vui lòng nhập email';
     }
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Please enter a valid email address';
+      return 'Email không hợp lệ';
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'Vui lòng nhập mật khẩu';
     }
     if (value.length < AppConstants.minPasswordLength) {
-      return 'Password must be at least ${AppConstants.minPasswordLength} characters';
+      return 'Mật khẩu phải có ít nhất ${AppConstants.minPasswordLength} ký tự';
     }
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
+      return 'Vui lòng xác nhận mật khẩu';
     }
     if (value != _passwordController.text) {
-      return 'Passwords do not match';
+      return 'Mật khẩu không khớp';
     }
     return null;
   }
@@ -95,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 10),
-              const Text('Account created successfully!'),
+              const Text('Tạo tài khoản thành công!'),
             ],
           ),
           backgroundColor: AppTheme.successColor,
@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           margin: const EdgeInsets.all(16),
         ),
       );
-      Navigator.pop(context); // Return to login screen
+      Navigator.pop(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               const Icon(Icons.error_outline, color: Colors.white, size: 20),
               const SizedBox(width: 10),
-              const Text('Registration failed. Email may already be in use.'),
+              const Text('Đăng ký thất bại. Email có thể đã được sử dụng.'),
             ],
           ),
           backgroundColor: AppTheme.errorColor,
@@ -140,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         builder: (context, authViewModel, child) {
           return LoadingOverlay(
             isLoading: authViewModel.isLoading,
-            message: 'Creating your account...',
+            message: 'Đang tạo tài khoản...',
             child: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -165,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Create Account',
+                      'Tạo tài khoản',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -174,7 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Join SportHub and start booking courts today',
+                      'Đăng ký SportHub và bắt đầu đặt sân ngay',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textSecondary,
@@ -188,8 +188,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           CustomTextField(
                             controller: _nameController,
-                            label: 'Full Name',
-                            hint: 'Enter your full name',
+                            label: 'Họ và tên',
+                            hint: 'Nhập họ tên của bạn',
                             prefixIcon: Icons.person_outline,
                             keyboardType: TextInputType.name,
                             textInputAction: TextInputAction.next,
@@ -198,8 +198,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
                           CustomTextField(
                             controller: _emailController,
-                            label: 'Email Address',
-                            hint: 'Enter your email',
+                            label: 'Địa chỉ email',
+                            hint: 'Nhập email của bạn',
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
@@ -208,8 +208,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
                           CustomTextField(
                             controller: _passwordController,
-                            label: 'Password',
-                            hint: 'Create a strong password',
+                            label: 'Mật khẩu',
+                            hint: 'Tạo mật khẩu mạnh',
                             prefixIcon: Icons.lock_outline,
                             obscureText: true,
                             textInputAction: TextInputAction.next,
@@ -218,8 +218,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 16),
                           CustomTextField(
                             controller: _confirmPasswordController,
-                            label: 'Confirm Password',
-                            hint: 'Re-enter your password',
+                            label: 'Xác nhận mật khẩu',
+                            hint: 'Nhập lại mật khẩu',
                             prefixIcon: Icons.lock_outline,
                             obscureText: true,
                             textInputAction: TextInputAction.done,
@@ -227,9 +227,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onSubmitted: (_) => _handleRegister(),
                           ),
                           const SizedBox(height: 24),
-                          // Register Button
                           CustomButton(
-                            text: 'Create Account',
+                            text: 'Tạo tài khoản',
                             onPressed: _handleRegister,
                             isLoading: authViewModel.isLoading,
                             icon: Icons.person_add,
@@ -244,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            'Already have an account? ',
+                            'Đã có tài khoản? ',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondary,
                             ),
@@ -253,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Text(
-                            'Sign In',
+                            'Đăng nhập',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: AppTheme.primaryColor,
                               fontWeight: FontWeight.bold,

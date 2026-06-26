@@ -30,21 +30,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return 'Vui lòng nhập email';
     }
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Please enter a valid email address';
+      return 'Email không hợp lệ';
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'Vui lòng nhập mật khẩu';
     }
     if (value.length < AppConstants.minPasswordLength) {
-      return 'Password must be at least ${AppConstants.minPasswordLength} characters';
+      return 'Mật khẩu phải có ít nhất ${AppConstants.minPasswordLength} ký tự';
     }
     return null;
   }
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Icon(Icons.error_outline, color: Colors.white, size: 20),
               const SizedBox(width: 10),
-              const Text('Login failed. Please check your credentials.'),
+              const Text('Đăng nhập thất bại. Vui lòng kiểm tra thông tin.'),
             ],
           ),
           backgroundColor: AppTheme.errorColor,
@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Welcome Back!',
+                            'Chào mừng trở lại!',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Sign in to continue booking courts',
+                            'Đăng nhập để tiếp tục đặt sân',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondary,
@@ -151,8 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 CustomTextField(
                                   controller: _emailController,
-                                  label: 'Email Address',
-                                  hint: 'Enter your email',
+                                  label: 'Địa chỉ email',
+                                  hint: 'Nhập email của bạn',
                                   prefixIcon: Icons.email_outlined,
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.next,
@@ -161,8 +161,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(height: 20),
                                 CustomTextField(
                                   controller: _passwordController,
-                                  label: 'Password',
-                                  hint: 'Enter your password',
+                                  label: 'Mật khẩu',
+                                  hint: 'Nhập mật khẩu',
                                   prefixIcon: Icons.lock_outline,
                                   obscureText: _obscurePassword,
                                   textInputAction: TextInputAction.done,
@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: () {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: const Text('Password reset coming soon!'),
+                                          content: const Text('Tính năng đặt lại mật khẩu sắp ra mắt!'),
                                           backgroundColor: AppTheme.infoColor,
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
@@ -186,12 +186,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       );
                                     },
-                                    child: const Text('Forgot Password?'),
+                                    child: const Text('Quên mật khẩu?'),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 CustomButton(
-                                  text: 'Sign In',
+                                  text: 'Đăng nhập',
                                   onPressed: _handleLogin,
                                   isLoading: authViewModel.isLoading,
                                   icon: Icons.login,
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  'OR',
+                                  'HOẶC',
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppTheme.textLight,
                                     fontWeight: FontWeight.w600,
@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  "Don't have an account? ",
+                                  'Chưa có tài khoản? ',
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: AppTheme.textSecondary,
                                   ),
@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   );
                                 },
                                 child: Text(
-                                  'Sign Up',
+                                  'Đăng ký',
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,

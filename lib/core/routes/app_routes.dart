@@ -14,4 +14,16 @@ class AppRoutes {
   static const String myBookings = '/my-bookings';
   static const String profile = '/profile';
   static const String main = '/main';
+
+  // Owner Routes
+  static const String ownerDashboard = '/owner/dashboard';
+  static const String ownerCourts = '/owner/courts';
+  static const String ownerCalendar = '/owner/calendar';
+
+  // Admin Routes
+  static const String adminDashboard = '/admin/dashboard';
+  static const String adminApproval = '/admin/approval';
+
+  // Map Route
+  static const String map = '/map';
 }

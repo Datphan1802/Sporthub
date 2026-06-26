@@ -5,9 +5,6 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/booking_viewmodel.dart';
 import '../../widgets/booking_card.dart';
 
-/// My Bookings screen displaying all bookings made by the current user.
-/// Shows bookings grouped by status (upcoming, completed, cancelled).
-
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
 
@@ -48,7 +45,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title: const Text('Lịch đặt sân'),
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
         actions: [
@@ -68,9 +65,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             fontSize: 14,
           ),
           tabs: const [
-            Tab(text: 'Upcoming'),
-            Tab(text: 'Completed'),
-            Tab(text: 'Cancelled'),
+            Tab(text: 'Sắp tới'),
+            Tab(text: 'Hoàn thành'),
+            Tab(text: 'Đã hủy'),
           ],
         ),
       ),
@@ -127,7 +124,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             ),
             const SizedBox(height: 24),
             Text(
-              'No Bookings Yet',
+              'Chưa có lịch đặt',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
@@ -135,7 +132,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              "You haven't made any bookings yet.\nStart exploring courts and book one!",
+              'Bạn chưa đặt sân nào.\nHãy tìm và đặt sân yêu thích!',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppTheme.textSecondary,
@@ -145,11 +142,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             const SizedBox(height: 32),
             OutlinedButton.icon(
               onPressed: () {
-                // Navigate to home tab
                 Navigator.pop(context);
               },
               icon: const Icon(Icons.explore),
-              label: const Text('Browse Courts'),
+              label: const Text('Tìm sân ngay'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.primaryColor,
                 side: const BorderSide(color: AppTheme.primaryColor),
@@ -226,13 +222,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
   String _getEmptyMessage(String type) {
     switch (type) {
       case 'upcoming':
-        return 'No upcoming bookings';
+        return 'Không có lịch đặt sắp tới';
       case 'completed':
-        return 'No completed bookings';
+        return 'Không có lịch đã hoàn thành';
       case 'cancelled':
-        return 'No cancelled bookings';
+        return 'Không có lịch đã hủy';
       default:
-        return 'No bookings';
+        return 'Không có lịch đặt';
     }
   }
 
@@ -242,12 +238,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc muốn đăng xuất không?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () {
@@ -255,7 +251,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               authViewModel.logout();
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Sign Out'),
+            child: const Text('Đăng xuất'),
           ),
         ],
       ),
@@ -266,35 +262,85 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Booking'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Hủy đặt sân'),
         content: Text(
-          'Are you sure you want to cancel your booking at ${booking.courtName}?',
+          'Bạn có chắc muốn hủy đặt sân tại ${booking.courtName} không?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('No, Keep It'),
+            child: const Text('Giữ'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Booking cancelled'),
-                  backgroundColor: AppTheme.warningColor,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                ),
-              );
+              await _cancelBooking(booking.id);
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Yes, Cancel'),
+            child: const Text('Hủy đặt'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _cancelBooking(String bookingId) async {
+    try {
+      final bookingViewModel =
+          Provider.of<BookingViewModel>(context, listen: false);
+      final ok = await bookingViewModel.cancelBooking(bookingId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  ok ? Icons.check_circle : Icons.error_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    ok
+                        ? 'Đã hủy đặt sân thành công'
+                        : 'Không thể hủy đặt sân. Vui lòng thử lại.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ok ? AppTheme.successColor : AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Text('Không thể hủy đặt sân. Vui lòng thử lại.'),
+              ],
+            ),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    }
   }
 }

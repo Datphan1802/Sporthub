@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../viewmodels/auth_viewmodel.dart';
-
-/// Profile screen displaying user information and account options.
-/// Shows user name, email, stats, and logout functionality.
+import '../../viewmodels/booking_viewmodel.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,12 +10,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
+    final bookingViewModel = Provider.of<BookingViewModel>(context);
     final user = authViewModel.currentUser;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Tài khoản'),
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
         actions: [
@@ -33,7 +32,6 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Profile Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -50,7 +48,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Avatar
                   Container(
                     width: 90,
                     height: 90,
@@ -76,9 +73,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Name
                   Text(
-                    user?.name ?? 'Loading...',
+                    user?.name ?? 'Đang tải...',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -86,7 +82,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Email
                   Text(
                     user?.email ?? '',
                     style: TextStyle(
@@ -95,7 +90,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Edit Profile Button
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
@@ -111,7 +105,7 @@ class ProfileScreen extends StatelessWidget {
                         size: 18,
                       ),
                       label: const Text(
-                        'Edit Profile',
+                        'Chỉnh sửa',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -123,15 +117,14 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            // Stats Row
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
                     context,
                     icon: Icons.calendar_today,
-                    value: '5',
-                    label: 'Total Bookings',
+                    value: '${bookingViewModel.totalBookings}',
+                    label: 'Tổng đặt',
                     color: AppTheme.primaryColor,
                   ),
                 ),
@@ -140,8 +133,8 @@ class ProfileScreen extends StatelessWidget {
                   child: _buildStatCard(
                     context,
                     icon: Icons.check_circle,
-                    value: '3',
-                    label: 'Completed',
+                    value: '${bookingViewModel.completedBookings}',
+                    label: 'Hoàn thành',
                     color: AppTheme.successColor,
                   ),
                 ),
@@ -150,32 +143,31 @@ class ProfileScreen extends StatelessWidget {
                   child: _buildStatCard(
                     context,
                     icon: Icons.access_time,
-                    value: '2',
-                    label: 'Upcoming',
+                    value: '${bookingViewModel.upcomingBookings}',
+                    label: 'Sắp tới',
                     color: AppTheme.warningColor,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            // Menu Items
-            _buildMenuSection(context, 'Account'),
+            _buildMenuSection(context, 'Tài khoản'),
             _buildMenuItem(
               context,
               icon: Icons.person_outline,
-              title: 'Personal Information',
-              subtitle: 'Update your name and contact details',
+              title: 'Thông tin cá nhân',
+              subtitle: 'Cập nhật tên và thông tin liên hệ',
               onTap: () => _showEditProfileSheet(context, user?.name ?? ''),
             ),
             _buildMenuItem(
               context,
               icon: Icons.notifications_outlined,
-              title: 'Notifications',
-              subtitle: 'Manage notification preferences',
+              title: 'Thông báo',
+              subtitle: 'Quản lý cài đặt thông báo',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Notification settings coming soon!'),
+                    content: const Text('Tính năng thông báo sắp ra mắt!'),
                     backgroundColor: AppTheme.infoColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -189,12 +181,12 @@ class ProfileScreen extends StatelessWidget {
             _buildMenuItem(
               context,
               icon: Icons.lock_outline,
-              title: 'Change Password',
-              subtitle: 'Update your account password',
+              title: 'Đổi mật khẩu',
+              subtitle: 'Cập nhật mật khẩu tài khoản',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Password change coming soon!'),
+                    content: const Text('Tính năng đổi mật khẩu sắp ra mắt!'),
                     backgroundColor: AppTheme.infoColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -206,16 +198,16 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
-            _buildMenuSection(context, 'Support'),
+            _buildMenuSection(context, 'Hỗ trợ'),
             _buildMenuItem(
               context,
               icon: Icons.help_outline,
-              title: 'Help & Support',
-              subtitle: 'Get help with your account',
+              title: 'Trợ giúp & Hỗ trợ',
+              subtitle: 'Liên hệ hỗ trợ tài khoản',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Help & Support coming soon!'),
+                    content: const Text('Tính năng hỗ trợ sắp ra mắt!'),
                     backgroundColor: AppTheme.infoColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -229,19 +221,18 @@ class ProfileScreen extends StatelessWidget {
             _buildMenuItem(
               context,
               icon: Icons.info_outline,
-              title: 'About SportHub',
-              subtitle: 'Version 1.0.0',
+              title: 'Về SportHub',
+              subtitle: 'Phiên bản 1.0.0',
               onTap: () => _showAboutDialog(context),
             ),
             const SizedBox(height: 24),
-            // Logout Button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => _showLogoutDialog(context, authViewModel),
                 icon: const Icon(Icons.logout, color: AppTheme.errorColor),
                 label: const Text(
-                  'Sign Out',
+                  'Đăng xuất',
                   style: TextStyle(
                     color: AppTheme.errorColor,
                     fontWeight: FontWeight.w600,
@@ -402,7 +393,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Settings',
+              'Cài đặt',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -411,7 +402,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.dark_mode_outlined),
-              title: const Text('Dark Mode'),
+              title: const Text('Chế độ tối'),
               trailing: Switch(
                 value: false,
                 onChanged: (value) {},
@@ -420,8 +411,8 @@ class ProfileScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.language),
-              title: const Text('Language'),
-              trailing: const Text('English'),
+              title: const Text('Ngôn ngữ'),
+              trailing: const Text('Tiếng Việt'),
             ),
             const SizedBox(height: 16),
           ],
@@ -461,7 +452,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Edit Profile',
+              'Chỉnh sửa tài khoản',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -471,7 +462,7 @@ class ProfileScreen extends StatelessWidget {
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: 'Full Name',
+                labelText: 'Họ và tên',
                 prefixIcon: Icon(Icons.person_outline),
               ),
             ),
@@ -481,7 +472,7 @@ class ProfileScreen extends StatelessWidget {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Profile updated successfully!'),
+                    content: const Text('Cập nhật tài khoản thành công!'),
                     backgroundColor: AppTheme.successColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -491,7 +482,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: const Text('Save Changes'),
+              child: const Text('Lưu thay đổi'),
             ),
           ],
         ),
@@ -504,12 +495,12 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc muốn đăng xuất không?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () {
@@ -517,7 +508,7 @@ class ProfileScreen extends StatelessWidget {
               authViewModel.logout();
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Sign Out'),
+            child: const Text('Đăng xuất'),
           ),
         ],
       ),
@@ -551,15 +542,15 @@ class ProfileScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Version 1.0.0'),
+            Text('Phiên bản 1.0.0'),
             SizedBox(height: 8),
             Text(
-              'SportHub is a court booking application that helps you find and book sports courts near you.',
+              'SportHub là ứng dụng đặt sân thể thao, giúp bạn dễ dàng tìm và đặt sân yêu thích.',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
             SizedBox(height: 8),
             Text(
-              'Built with Flutter, Firebase, and MVVM architecture.',
+              'Xây dựng với Flutter, Firebase và kiến trúc MVVM.',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
             ),
           ],
@@ -567,7 +558,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: const Text('Đóng'),
           ),
         ],
       ),

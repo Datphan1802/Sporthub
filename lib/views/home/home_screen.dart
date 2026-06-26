@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../utils/court_filters.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/booking_viewmodel.dart';
 import '../../widgets/court_card.dart';
@@ -8,9 +9,7 @@ import '../../widgets/booking_card.dart';
 import '../court_detail/court_detail_screen.dart';
 import '../booking/my_bookings_screen.dart';
 import '../profile/profile_screen.dart';
-
-/// Home screen displaying available courts, quick stats, and recent bookings.
-/// Acts as the main dashboard after successful login.
+import '../map/map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,13 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedSportFilter;
 
   final List<String> _sportFilters = [
-    'All',
+    'Tất cả',
     'Tennis',
-    'Badminton',
-    'Basketball',
-    'Football',
-    'Volleyball',
-    'Swimming',
+    'Cầu lông',
+    'Bóng rổ',
+    'Bóng đá',
+    'Bóng chuyền',
+    'Bơi lội',
   ];
 
   @override
@@ -43,8 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadData() {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    final bookingViewModel =
-        Provider.of<BookingViewModel>(context, listen: false);
+    final bookingViewModel = Provider.of<BookingViewModel>(
+      context,
+      listen: false,
+    );
 
     bookingViewModel.fetchCourts();
     if (authViewModel.currentUser != null) {
@@ -81,11 +82,19 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
+                _buildNavItem(0, Icons.home_outlined, Icons.home, 'Trang chủ'),
                 _buildNavItem(
-                    1, Icons.calendar_today_outlined, Icons.calendar_today, 'Bookings'),
+                  1,
+                  Icons.calendar_today_outlined,
+                  Icons.calendar_today,
+                  'Lịch đặt',
+                ),
                 _buildNavItem(
-                    2, Icons.person_outline, Icons.person, 'Profile'),
+                  2,
+                  Icons.person_outline,
+                  Icons.person,
+                  'Tài khoản',
+                ),
               ],
             ),
           ),
@@ -100,12 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc muốn đăng xuất không?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () {
@@ -113,15 +122,55 @@ class _HomeScreenState extends State<HomeScreen> {
               authViewModel.logout();
             },
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Sign Out'),
+            child: const Text('Đăng xuất'),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildHeaderActionButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+    bool isEmphasized = false,
+  }) {
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: isEmphasized ? AppTheme.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          icon: Icon(
+            icon,
+            size: 22,
+            color: isEmphasized ? Colors.white : AppTheme.textPrimary,
+          ),
+          tooltip: tooltip,
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+
   Widget _buildNavItem(
-      int index, IconData outlinedIcon, IconData filledIcon, String label) {
+    int index,
+    IconData outlinedIcon,
+    IconData filledIcon,
+    String label,
+  ) {
     final isSelected = _currentIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
@@ -162,25 +211,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeTab() {
     final authViewModel = Provider.of<AuthViewModel>(context);
     final bookingViewModel = Provider.of<BookingViewModel>(context);
+    final filteredCourts = filterCourtsBySport(
+      bookingViewModel.courts,
+      _selectedSportFilter,
+    );
 
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          // App Bar
           SliverAppBar(
             floating: true,
             backgroundColor: AppTheme.backgroundColor,
             elevation: 0,
-            expandedHeight: 130,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: IconButton(
-                  icon: const Icon(Icons.logout, color: AppTheme.textPrimary),
-                  onPressed: () => _showLogoutDialog(context),
-                ),
-              ),
-            ],
+            expandedHeight: 112,
             flexibleSpace: FlexibleSpaceBar(
               background: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -190,38 +233,54 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Xin chào, ${authViewModel.currentUser?.name ?? 'Guest'}!',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tìm và đặt sân thể thao yêu thích',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Hello, ${authViewModel.currentUser?.name ?? 'Guest'}!',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            _buildHeaderActionButton(
+                              icon: Icons.map_outlined,
+                              tooltip: 'Bản đồ sân',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const MapScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Find and book your favorite court',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(color: AppTheme.textSecondary),
+                            const SizedBox(width: 8),
+                            _buildHeaderActionButton(
+                              icon: Icons.logout,
+                              tooltip: 'Đăng xuất',
+                              onPressed: () => _showLogoutDialog(context),
+                              isEmphasized: true,
                             ),
                           ],
-                        ),
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.primaryGradient,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.sports_tennis,
-                            color: Colors.white,
-                            size: 24,
-                          ),
                         ),
                       ],
                     ),
@@ -230,7 +289,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Stats Cards
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
@@ -239,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _buildStatCard(
                       icon: Icons.sports_tennis,
-                      label: 'Total Courts',
+                      label: 'Tổng sân',
                       value: '${bookingViewModel.courts.length}',
                       color: AppTheme.primaryColor,
                     ),
@@ -248,8 +306,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _buildStatCard(
                       icon: Icons.calendar_today,
-                      label: 'My Bookings',
-                      value: '${bookingViewModel.myBookings.length}',
+                      label: 'Lịch đặt',
+                      value: '${bookingViewModel.totalBookings}',
                       color: AppTheme.secondaryColor,
                     ),
                   ),
@@ -257,8 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: _buildStatCard(
                       icon: Icons.check_circle,
-                      label: 'Completed',
-                      value: '${bookingViewModel.myBookings.where((b) => b.status == 'completed').length}',
+                      label: 'Hoàn thành',
+                      value: '${bookingViewModel.completedBookings}',
                       color: AppTheme.warningColor,
                     ),
                   ),
@@ -266,7 +324,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Recent Bookings Section
           if (bookingViewModel.myBookings.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: Padding(
@@ -275,12 +332,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Recent Bookings',
+                      'Đặt sân gần đây',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     TextButton(
                       onPressed: () => setState(() => _currentIndex = 1),
-                      child: const Text('See All'),
+                      child: const Text('Xem tất cả'),
                     ),
                   ],
                 ),
@@ -302,7 +359,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: BookingCard(
                           booking: booking,
                           onTap: () {
-                            // Navigate to court detail
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -321,12 +377,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-          // Sport Filters
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
               child: Text(
-                'Browse Courts',
+                'Danh sách sân',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
@@ -340,8 +395,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: _sportFilters.length,
                 itemBuilder: (context, index) {
                   final filter = _sportFilters[index];
-                  final isSelected = _selectedSportFilter == filter ||
-                      (filter == 'All' && _selectedSportFilter == null);
+                  final isSelected =
+                      _selectedSportFilter == filter ||
+                      (filter == 'Tất cả' && _selectedSportFilter == null);
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
@@ -349,17 +405,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
-                          _selectedSportFilter = filter == 'All' ? null : filter;
+                          _selectedSportFilter = filter == 'Tất cả'
+                              ? null
+                              : filter;
                         });
                       },
-                      selectedColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+                      selectedColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.15,
+                      ),
                       checkmarkColor: AppTheme.primaryColor,
                       labelStyle: TextStyle(
                         color: isSelected
                             ? AppTheme.primaryColor
                             : AppTheme.textSecondary,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                       side: BorderSide(
                         color: isSelected
@@ -373,61 +434,71 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          // Courts List
-          if (bookingViewModel.courts.isEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.sports_tennis,
-                      size: 64,
-                      color: AppTheme.textLight.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No courts available',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add courts in Firebase Firestore to see them here',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            )
+          if (filteredCourts.isEmpty)
+            SliverToBoxAdapter(child: _buildEmptyCourtsState())
           else
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final court = bookingViewModel.courts[index];
-                    return CourtCard(
-                      court: court,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CourtDetailScreen(
-                              courtId: court.id,
-                              courtName: court.name,
-                            ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final court = filteredCourts[index];
+                  return CourtCard(
+                    court: court,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CourtDetailScreen(
+                            courtId: court.id,
+                            courtName: court.name,
                           ),
-                        );
-                      },
-                    );
-                  },
-                  childCount: bookingViewModel.courts.length,
-                ),
+                        ),
+                      );
+                    },
+                  );
+                }, childCount: filteredCourts.length),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyCourtsState() {
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.sports_tennis,
+              size: 40,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Chưa có sân nào',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Dữ liệu sân đang được cập nhật.\nVui lòng quay lại sau.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textSecondary,
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );
@@ -467,16 +538,16 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
           ),
         ],
       ),

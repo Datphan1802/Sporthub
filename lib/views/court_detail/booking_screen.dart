@@ -3,14 +3,10 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../models/court_model.dart';
-import '../../models/booking_model.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/booking_viewmodel.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-
-/// Booking screen for reserving a court.
-/// Allows users to select date, time slot, and confirm the booking.
 
 class BookingScreen extends StatefulWidget {
   final CourtModel court;
@@ -31,6 +27,14 @@ class _BookingScreenState extends State<BookingScreen> {
   void dispose() {
     _notesController.dispose();
     super.dispose();
+  }
+
+  String _formatPrice(double price) {
+    if (price >= 1000000) {
+      return '${(price / 1000000).toStringAsFixed(1)} triệu VNĐ';
+    }
+    return '${price.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')} VNĐ';
   }
 
   Future<void> _selectDate() async {
@@ -69,7 +73,7 @@ class _BookingScreenState extends State<BookingScreen> {
             children: [
               Icon(Icons.warning_amber, color: Colors.white, size: 20),
               SizedBox(width: 10),
-              Text('Please select a time slot'),
+              Text('Vui lòng chọn khung giờ'),
             ],
           ),
           backgroundColor: AppTheme.warningColor,
@@ -89,35 +93,56 @@ class _BookingScreenState extends State<BookingScreen> {
       final bookingViewModel =
           Provider.of<BookingViewModel>(context, listen: false);
 
-      final booking = BookingModel(
-        id: '',
-        userId: authViewModel.currentUser!.uid,
+      final success = await bookingViewModel.bookCourt(
         courtId: widget.court.id,
         courtName: widget.court.name,
         date: _selectedDate,
         timeSlot: _selectedTimeSlot!,
-        status: AppConstants.statusPending,
+        userId: authViewModel.currentUser!.uid,
+        price: widget.court.price,
+        courtLocation: widget.court.location,
+        courtImageUrl: widget.court.imageUrl,
       );
 
-      await bookingViewModel.bookCourt(booking);
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                const Text('Booking submitted successfully!'),
-              ],
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  SizedBox(width: 10),
+                  Text('Đặt sân thành công! Vui lòng thanh toán trong 15 phút.'),
+                ],
+              ),
+              backgroundColor: AppTheme.successColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 5),
             ),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-        Navigator.pop(context);
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(bookingViewModel.lastBookingError ??
+                        'Đặt sân thất bại. Vui lòng thử lại.'),
+                  ),
+                ],
+              ),
+              backgroundColor: AppTheme.errorColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -127,7 +152,7 @@ class _BookingScreenState extends State<BookingScreen> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 10),
-                Text('Booking failed: ${e.toString()}'),
+                Expanded(child: Text('Đặt sân thất bại: ${e.toString()}')),
               ],
             ),
             backgroundColor: AppTheme.errorColor,
@@ -146,10 +171,12 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bookingViewModel = Provider.of<BookingViewModel>(context, listen: false);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Book Court'),
+        title: const Text('Đặt sân'),
         backgroundColor: AppTheme.backgroundColor,
         elevation: 0,
       ),
@@ -158,7 +185,6 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Court Info Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -213,13 +239,15 @@ class _BookingScreenState extends State<BookingScreen> {
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: AppTheme.textSecondary,
                                     ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '\$${widget.court.price.toStringAsFixed(0)}/hour',
+                          '${_formatPrice(widget.court.price)}/giờ',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
@@ -232,9 +260,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            // Date Selection
             Text(
-              'Select Date',
+              'Chọn ngày',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -279,9 +306,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            // Time Slot Selection
             Text(
-              'Select Time Slot',
+              'Chọn khung giờ',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -300,28 +326,39 @@ class _BookingScreenState extends State<BookingScreen> {
               itemBuilder: (context, index) {
                 final slot = AppConstants.timeSlots[index];
                 final isSelected = _selectedTimeSlot == slot;
+                final isTaken = bookingViewModel.isSlotTaken(
+                    widget.court.id, _selectedDate, slot);
+
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedTimeSlot = slot),
+                  onTap: isTaken
+                      ? null
+                      : () => setState(() => _selectedTimeSlot = slot),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor
-                          : Colors.white,
+                      color: isTaken
+                          ? Colors.grey.shade100
+                          : isSelected
+                              ? AppTheme.primaryColor
+                              : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : Colors.grey.shade200,
+                        color: isTaken
+                            ? Colors.grey.shade200
+                            : isSelected
+                                ? AppTheme.primaryColor
+                                : Colors.grey.shade200,
                       ),
                     ),
                     child: Center(
                       child: Text(
-                        slot,
+                        isTaken ? '$slot (Đã đặt)' : slot,
                         style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.textSecondary,
+                          color: isTaken
+                              ? Colors.grey.shade400
+                              : isSelected
+                                  ? Colors.white
+                                  : AppTheme.textSecondary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -331,10 +368,38 @@ class _BookingScreenState extends State<BookingScreen> {
                 );
               },
             ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.warningColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.warningColor.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: AppTheme.warningColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Đặt sân pending cần thanh toán trong 15 phút để được xác nhận.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.warningColor,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 28),
-            // Notes
             Text(
-              'Notes (Optional)',
+              'Ghi chú (tùy chọn)',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -343,12 +408,11 @@ class _BookingScreenState extends State<BookingScreen> {
             CustomTextField(
               controller: _notesController,
               label: '',
-              hint: 'Add any special requests or notes...',
+              hint: 'Thêm yêu cầu đặc biệt...',
               prefixIcon: Icons.note_outlined,
               maxLines: 3,
             ),
             const SizedBox(height: 32),
-            // Price Summary
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -364,13 +428,13 @@ class _BookingScreenState extends State<BookingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Court Fee',
+                        'Phí sân',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondary,
                             ),
                       ),
                       Text(
-                        '\$${widget.court.price.toStringAsFixed(0)}/hr',
+                        '${_formatPrice(widget.court.price)}/giờ',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -380,13 +444,13 @@ class _BookingScreenState extends State<BookingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Duration',
+                        'Thời lượng',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppTheme.textSecondary,
                             ),
                       ),
                       Text(
-                        '1 Hour',
+                        '1 giờ',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -399,13 +463,13 @@ class _BookingScreenState extends State<BookingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total',
+                        'Tổng cộng',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       Text(
-                        '\$${widget.court.price.toStringAsFixed(0)}',
+                        _formatPrice(widget.court.price),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor,
@@ -417,9 +481,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Confirm Button
             CustomButton(
-              text: 'Confirm Booking',
+              text: 'Xác nhận đặt sân',
               icon: Icons.check_circle,
               isLoading: _isSubmitting,
               onPressed: _handleBooking,

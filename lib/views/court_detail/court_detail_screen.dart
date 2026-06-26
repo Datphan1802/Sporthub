@@ -6,9 +6,6 @@ import '../../viewmodels/booking_viewmodel.dart';
 import '../../widgets/custom_button.dart';
 import 'booking_screen.dart';
 
-/// Court detail screen showing full information about a specific court.
-/// Displays court image, description, price, amenities, and a booking button.
-
 class CourtDetailScreen extends StatefulWidget {
   final String courtId;
   final String courtName;
@@ -40,9 +37,9 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
       orElse: () => CourtModel(
         id: widget.courtId,
         name: widget.courtName,
-        location: 'Unknown Location',
+        location: 'Địa điểm không xác định',
         price: 0,
-        description: 'No description available.',
+        description: 'Không có mô tả.',
         imageUrl: '',
       ),
     );
@@ -63,7 +60,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
       backgroundColor: AppTheme.backgroundColor,
       body: CustomScrollView(
         slivers: [
-          // Hero Image AppBar
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -105,7 +101,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                       );
                     },
                   ),
-                  // Gradient overlay for text readability
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -119,7 +114,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                       ),
                     ),
                   ),
-                  // Price Badge
                   Positioned(
                     bottom: 16,
                     right: 16,
@@ -133,7 +127,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '\$${court.price.toStringAsFixed(0)}/hour',
+                        '${court.price.toStringAsFixed(0)} VNĐ/giờ',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -146,7 +140,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
               ),
             ),
           ),
-          // Content
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -158,7 +151,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Court Name
                     Text(
                       court.name,
                       style:
@@ -167,7 +159,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                               ),
                     ),
                     const SizedBox(height: 12),
-                    // Location
                     Row(
                       children: [
                         Container(
@@ -197,35 +188,33 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    // Quick Info Row
                     Row(
                       children: [
                         _buildQuickInfoItem(
                           icon: Icons.star,
                           label: '4.8',
-                          sublabel: 'Rating',
+                          sublabel: 'Đánh giá',
                           color: AppTheme.warningColor,
                         ),
                         const SizedBox(width: 16),
                         _buildQuickInfoItem(
                           icon: Icons.access_time,
-                          label: 'Open',
-                          sublabel: 'Now',
+                          label: 'Mở cửa',
+                          sublabel: 'Ngay bây giờ',
                           color: AppTheme.successColor,
                         ),
                         const SizedBox(width: 16),
                         _buildQuickInfoItem(
                           icon: Icons.sports_tennis,
                           label: '2',
-                          sublabel: 'Courts',
+                          sublabel: 'Sân',
                           color: AppTheme.infoColor,
                         ),
                       ],
                     ),
                     const SizedBox(height: 28),
-                    // Description Section
                     Text(
-                      'About this Court',
+                      'Giới thiệu',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -239,9 +228,8 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                           ),
                     ),
                     const SizedBox(height: 28),
-                    // Amenities Section
                     Text(
-                      'Amenities',
+                      'Tiện ích',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -251,18 +239,17 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                       spacing: 10,
                       runSpacing: 10,
                       children: [
-                        _buildAmenityChip(Icons.wifi, 'Free WiFi'),
-                        _buildAmenityChip(Icons.local_parking, 'Parking'),
-                        _buildAmenityChip(Icons.shower, 'Showers'),
-                        _buildAmenityChip(Icons.restaurant, 'Cafe'),
-                        _buildAmenityChip(Icons.flash_on, 'Lighting'),
-                        _buildAmenityChip(Icons.ac_unit, 'AC'),
+                        _buildAmenityChip(Icons.wifi, 'Wifi miễn phí'),
+                        _buildAmenityChip(Icons.local_parking, 'Chỗ đỗ xe'),
+                        _buildAmenityChip(Icons.shower, 'Phòng tắm'),
+                        _buildAmenityChip(Icons.restaurant, 'Quán cafe'),
+                        _buildAmenityChip(Icons.flash_on, 'Chiếu sáng'),
+                        _buildAmenityChip(Icons.ac_unit, 'Điều hòa'),
                       ],
                     ),
                     const SizedBox(height: 28),
-                    // Location Section
                     Text(
-                      'Location',
+                      'Địa điểm',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -307,7 +294,6 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
           ),
         ],
       ),
-      // Book Now Button
       bottomSheet: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -328,14 +314,14 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '\$${court.price.toStringAsFixed(0)}',
+                    '${court.price.toStringAsFixed(0)} VNĐ',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryColor,
                         ),
                   ),
                   Text(
-                    'per hour',
+                    'mỗi giờ',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -345,7 +331,7 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
               const SizedBox(width: 20),
               Expanded(
                 child: CustomButton(
-                  text: 'Book Now',
+                  text: 'Đặt sân',
                   icon: Icons.calendar_month,
                   onPressed: () {
                     Navigator.push(
